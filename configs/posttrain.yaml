@@ -1,0 +1,7 @@
+# Do not start post-training until a base-model checkpoint and evaluation baseline exist.
+seed: 1337
+base_checkpoint: null
+dataset_path: null
+max_steps: null
+learning_rate: null
+budget_usd: 0

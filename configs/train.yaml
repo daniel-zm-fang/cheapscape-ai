@@ -1,0 +1,10 @@
+seed: 1337
+device: auto # local: cpu or mps; cloud: cuda
+precision: fp32 # Establish correctness before bf16/fp16.
+batch_size: null
+gradient_accumulation_steps: 1
+max_steps: null
+learning_rate: null
+checkpoint_every: null
+validation_every: null
+budget_usd: 0 # Change only for a planned cloud run.

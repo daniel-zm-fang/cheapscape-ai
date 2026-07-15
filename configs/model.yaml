@@ -1,0 +1,8 @@
+# Deliberately unfinished: set values after calculating parameters and memory.
+vocab_size: null
+context_length: null
+n_layers: null
+n_heads: null
+d_model: null
+dropout: 0.0
+position_encoding: absolute # Explore RoPE only after the baseline is tested.

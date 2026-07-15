@@ -1,0 +1,7 @@
+# Copy this file for each experiment; never modify a historical run config.
+seed: 1337
+sources: [] # Add sources only after recording provenance and terms.
+validation_fraction: 0.01
+normalization_version: v0
+deduplication: exact # Upgrade only when a test demonstrates its behavior.
+output_dir: data/processed

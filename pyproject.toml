@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cheapscape"
+version = "0.0.1"
+description = "A learning-first, from-scratch language model project"
+requires-python = ">=3.12"
+dependencies = [
+  "numpy>=2.0",
+  "pyyaml>=6.0",
+  "torch>=2.3",
+]
+
+[project.optional-dependencies]
+data = ["datasets>=3.0", "pyarrow>=17.0"]
+tracking = ["wandb>=0.18"]
+cloud = ["accelerate>=1.0"]
+dev = ["black>=24.0", "mypy>=1.11", "pytest>=8.0", "ruff>=0.6"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
+pythonpath = ["src"]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+
+[tool.black]
+line-length = 100
+target-version = ["py312"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+files = ["src"]

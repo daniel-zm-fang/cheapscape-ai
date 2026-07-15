@@ -1,0 +1,8 @@
+Cheapscape learns language models from scratch.
+The quick brown fox jumps over the lazy dog.
+Machine learning starts with small, inspectable data.
+
+Cheapscape learns language models from scratch.
+
+  trailing spaces matter
+Punctuation: hello, world! Does it survive?
