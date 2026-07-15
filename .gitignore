@@ -1,10 +1,13 @@
 # Python
 __pycache__/
 *.py[cod]
+*.egg-info/
 .venv/
 .mypy_cache/
 .pytest_cache/
 .ruff_cache/
+dist/
+build/
 
 # Local configuration and experiment telemetry
 .env

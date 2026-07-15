@@ -1,7 +1,11 @@
 # Copy this file for each experiment; never modify a historical run config.
 seed: 1337
-sources: [] # Add sources only after recording provenance and terms.
+sources:
+  - type: fixture
+    path: tests/fixtures/tiny_corpus.txt
+    id: tiny_corpus_v0
 validation_fraction: 0.01
 normalization_version: v0
 deduplication: exact # Upgrade only when a test demonstrates its behavior.
+raw_dir: data/raw
 output_dir: data/processed

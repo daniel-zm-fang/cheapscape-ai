@@ -1,0 +1,41 @@
+---
+description: Use Google-style git commit messages
+alwaysApply: true
+---
+
+# Commit message style
+
+Use [Google-style](https://google.github.io/eng-practices/review/developer/cl-descriptions.html) commit messages.
+
+## Format
+
+```
+Short imperative summary
+
+Optional body explaining why the change exists, what a reviewer
+needs to know, and any follow-ups. Wrap near 72 characters.
+```
+
+## Rules
+
+- Subject line: imperative mood ("Add", "Fix", "Ignore"), not past tense
+- Subject: concise; aim for ~50 characters when practical
+- Blank line between subject and body when a body is present
+- Body focuses on **why** and impact, not a file-by-file changelog
+- No trailing period on the subject line
+- Avoid Conventional Commit prefixes (`feat:`, `fix:`) unless explicitly requested
+
+## Examples
+
+```
+Add fixture acquisition into data/raw
+
+Copy the tiny corpus from tests/fixtures so Phase 1 can use a
+stable raw layout without downloading large datasets locally.
+```
+
+```
+Ignore setuptools egg-info artifacts
+
+Editable installs generate package metadata that should stay local.
+```
