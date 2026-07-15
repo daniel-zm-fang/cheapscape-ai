@@ -19,3 +19,6 @@ artifacts/
 
 # Private learning material
 docs/
+
+# Editor / agent local state
+.cursor/
