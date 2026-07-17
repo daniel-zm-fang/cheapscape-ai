@@ -1,0 +1,9 @@
+seed: 1337
+input_dir: data/processed
+tokenizer_path: artifacts/tokenizer/tokenizer.json
+output_dir: data/packed
+shard_size: 1048576 # Tokens per shard (~2 MiB at uint16). Tune to your data size.
+add_bos: true
+add_eos: true
+bos_token: "<|bos|>"
+eos_token: "<|eos|>"
