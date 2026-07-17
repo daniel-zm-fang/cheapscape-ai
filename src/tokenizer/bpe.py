@@ -139,6 +139,7 @@ class BPETokenizer:
     @classmethod
     def load(cls, path: Path) -> "BPETokenizer":
         """Reconstruct a tokenizer from an artifact written by :meth:`save`."""
+        path = Path(path)
         if path.is_dir():
             path = path / "tokenizer.json"
         payload = json.loads(path.read_text(encoding="utf-8"))
