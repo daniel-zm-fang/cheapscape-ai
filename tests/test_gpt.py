@@ -106,23 +106,31 @@ def test_from_mapping_matches_explicit_config() -> None:
 
 
 def test_attention_is_causal() -> None:
-    """Position i must put zero weight on every future position j > i."""
+    """``forward`` must put zero weight on every future position j > i."""
     torch.manual_seed(0)
     attn = CausalSelfAttention(d_model=32, n_heads=4, context_length=8, dropout=0.0)
     x = torch.randn(1, 6, 32)
+    captured: dict[str, torch.Tensor] = {}
 
-    qkv = attn.qkv(x)
-    q, k, _v = qkv.chunk(3, dim=-1)
-    batch, time, _ = x.shape
-    q = q.view(batch, time, 4, 8).transpose(1, 2)
-    k = k.view(batch, time, 4, 8).transpose(1, 2)
-    scores = (q @ k.transpose(-2, -1)) / (8**0.5)
-    scores = scores.masked_fill(~attn.causal_mask[:time, :time], float("-inf"))
-    weights = torch.softmax(scores, dim=-1)
+    def capture_weights(
+        _module: torch.nn.Module,
+        inputs: tuple[torch.Tensor, ...],
+        _output: torch.Tensor,
+    ) -> None:
+        # Dropout's input is the post-softmax attention matrix from ``forward``.
+        captured["weights"] = inputs[0].detach().clone()
 
+    handle = attn.attn_dropout.register_forward_hook(capture_weights)
+    try:
+        output = attn(x)
+    finally:
+        handle.remove()
+
+    assert output.shape == x.shape
+    weights = captured["weights"]
+    time = x.shape[1]
     future = torch.triu(torch.ones(time, time, dtype=torch.bool), diagonal=1)
     assert torch.count_nonzero(weights[..., future]) == 0
-    # Each row still forms a distribution over the visible prefix.
     assert torch.allclose(weights.sum(dim=-1), torch.ones(1, 4, time), atol=1e-5)
 
 
@@ -134,6 +142,21 @@ def test_block_preserves_sequence_shape() -> None:
     assert block(x).shape == x.shape
 
 
+def test_absolute_positions_affect_logits() -> None:
+    """Zeroing the position table must change outputs — positions are not decorative."""
+    torch.manual_seed(0)
+    model = GPT(_tiny_config())
+    model.eval()
+    token_ids = torch.randint(0, 64, (1, 8))
+
+    with torch.no_grad():
+        with_positions = model(token_ids)
+        model.position_emb.weight.zero_()
+        without_positions = model(token_ids)
+
+    assert not torch.allclose(with_positions, without_positions)
+
+
 # --------------------------------------------------------------- weight tying
 
 
@@ -142,11 +165,27 @@ def test_lm_head_shares_token_embedding_weights() -> None:
     assert model.lm_head.weight is model.token_emb.weight
 
 
-def test_parameter_count_counts_tied_weights_once() -> None:
-    model = GPT(_tiny_config())
-    # PyTorch's ``parameters()`` already deduplicates shared tensors.
-    assert model.parameter_count() == sum(p.numel() for p in model.parameters())
-    assert model.parameter_count() > model.config.vocab_size * model.config.d_model
+def test_parameter_count_matches_tied_architecture() -> None:
+    cfg = _tiny_config()
+    model = GPT(cfg)
+    d_model = cfg.d_model
+    # token emb + position emb + L * (2 LayerNorms + qkv + attn proj + mlp) + final LN.
+    # lm_head is tied to token_emb, so it contributes no extra parameters.
+    per_block = (
+        2 * d_model  # ln_1 weight + bias
+        + 3 * d_model * d_model  # qkv
+        + d_model * d_model  # attn proj
+        + 2 * d_model  # ln_2 weight + bias
+        + 4 * d_model * d_model  # mlp fc
+        + 4 * d_model * d_model  # mlp proj
+    )
+    expected = (
+        cfg.vocab_size * d_model
+        + cfg.context_length * d_model
+        + cfg.n_layers * per_block
+        + 2 * d_model  # ln_f
+    )
+    assert model.parameter_count() == expected
 
 
 # --------------------------------------------------------- next-token smoke
@@ -176,3 +215,15 @@ def test_dropout_inactive_in_eval() -> None:
         a = model(token_ids)
         b = model(token_ids)
     assert torch.equal(a, b)
+
+
+def test_forward_rejects_out_of_vocabulary_ids() -> None:
+    model = GPT(_tiny_config(vocab_size=64))
+    with pytest.raises(ValueError, match=r"\[0, 64\)"):
+        model(torch.tensor([[0, 64]], dtype=torch.long))
+
+
+def test_forward_rejects_non_integer_token_ids() -> None:
+    model = GPT(_tiny_config())
+    with pytest.raises(ValueError, match="integer dtype"):
+        model(torch.zeros(1, 4))
