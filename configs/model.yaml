@@ -1,8 +1,9 @@
-# Deliberately unfinished: set values after calculating parameters and memory.
-vocab_size: null
-context_length: null
-n_layers: null
-n_heads: null
-d_model: null
+# Provisional v0 sizes under the $100 from-scratch budget.
+# Revisit after one-batch overfitting (Phase 5) and a short GPU memory benchmark.
+vocab_size: 4096 # Match configs/tokenizer.yaml until the corpus picks a final size.
+context_length: 1024 # Design decision: 512 for tests; 2048 only if benchmarks justify it.
+n_layers: 6
+n_heads: 6
+d_model: 384 # ~13M unique parameters with tied embeddings.
 dropout: 0.0
 position_encoding: absolute # Explore RoPE only after the baseline is tested.
