@@ -1,0 +1,11 @@
+# Phase 3: pack a tokenized corpus into memory-mappable shards.
+seed: 1337
+input_dir: data/processed
+tokenizer_dir: artifacts/tokenizer
+output_dir: data/packed
+shard_size: 1048576 # tokens per shard; tune to keep shards a convenient size
+validation_fraction: 0.01 # fraction of documents held out as the val split
+prepend_bos: false
+append_eos: true # mark document boundaries in the packed stream
+bos_token: "<|bos|>"
+eos_token: "<|eos|>"
