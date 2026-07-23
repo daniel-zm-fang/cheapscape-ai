@@ -39,3 +39,5 @@ target-version = ["py312"]
 python_version = "3.12"
 strict = true
 files = ["src"]
+mypy_path = "src"
+explicit_package_bases = true
