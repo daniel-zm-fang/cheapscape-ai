@@ -34,8 +34,9 @@ class CausalSelfAttention(nn.Module):
         self.attn_dropout = nn.Dropout(dropout)
         self.resid_dropout = nn.Dropout(dropout)
 
-        # Persistent buffer so the mask moves with ``.to(device)`` and is saved
-        # in state_dict without being treated as a learnable parameter.
+        # Non-persistent buffer: moves with ``.to(device)`` but is omitted from
+        # ``state_dict`` because it is a deterministic tril mask rebuilt in
+        # ``__init__``.
         mask = torch.tril(torch.ones(context_length, context_length, dtype=torch.bool))
         self.register_buffer("causal_mask", mask, persistent=False)
         self.causal_mask: torch.Tensor

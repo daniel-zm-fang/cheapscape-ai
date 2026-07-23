@@ -64,12 +64,22 @@ class GPT(nn.Module):
             raise ValueError(
                 f"token_ids must have shape [batch, time], got {tuple(token_ids.shape)}"
             )
+        if token_ids.dtype not in (torch.int32, torch.int64):
+            raise ValueError(f"token_ids must be integer dtype, got {token_ids.dtype}")
 
         _batch, time = token_ids.shape
         if time > self.config.context_length:
             raise ValueError(
                 f"Sequence length {time} exceeds context_length " f"{self.config.context_length}"
             )
+        if token_ids.numel() > 0:
+            min_id = int(token_ids.min())
+            max_id = int(token_ids.max())
+            if min_id < 0 or max_id >= self.config.vocab_size:
+                raise ValueError(
+                    f"token_ids must be in [0, {self.config.vocab_size}), "
+                    f"got min={min_id}, max={max_id}"
+                )
 
         positions = torch.arange(time, device=token_ids.device)
         x = self.token_emb(token_ids) + self.position_emb(positions)
