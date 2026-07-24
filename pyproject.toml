@@ -17,7 +17,7 @@ dependencies = [
 data = ["datasets>=3.0", "pyarrow>=17.0"]
 tracking = ["wandb>=0.18"]
 cloud = ["accelerate>=1.0"]
-dev = ["black>=24.0", "mypy>=1.11", "pytest>=8.0", "ruff>=0.6"]
+dev = ["black>=24.0", "mypy>=1.11", "pytest>=8.0", "ruff>=0.6", "types-PyYAML>=6.0"]
 
 [tool.setuptools.packages.find]
 where = ["src"]

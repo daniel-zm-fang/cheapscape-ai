@@ -1,10 +1,27 @@
+# Pretraining run. Copy this file per experiment; never edit a historical run config.
+# Sized for one rented GPU; see deploy/README.md before spending budget.
 seed: 1337
 device: auto # local: cpu or mps; cloud: cuda
-precision: fp32 # Establish correctness before bf16/fp16.
-batch_size: null
-gradient_accumulation_steps: 1
-max_steps: null
-learning_rate: null
-checkpoint_every: null
-validation_every: null
-budget_usd: 0 # Change only for a planned cloud run.
+precision: bf16 # fp32 for correctness work, bf16 on Ampere or newer
+batch_size: 8
+gradient_accumulation_steps: 8 # 8 x 8 x 1024 = 65,536 tokens per optimizer step
+max_steps: 20000
+learning_rate: 6.0e-4
+context_length: 1024
+packed_dir: "data/packed"
+model_config: "configs/model.yaml"
+overfit_one_batch: false
+lr_schedule: cosine
+warmup_steps: 200
+min_lr_ratio: 0.1
+weight_decay: 0.1
+grad_clip: 1.0
+checkpoint_dir: "artifacts/checkpoints"
+checkpoint_every: 500 # keep small enough that a preemption loses little work
+keep_last_checkpoints: 2
+resume: true # pick up the newest checkpoint automatically
+validation_every: 500
+validation_batches: 8
+log_every: 20
+price_per_hour_usd: 0.0 # set to the rented instance rate to track spend
+budget_usd: 0 # non-zero stops the run once the estimate reaches the cap
