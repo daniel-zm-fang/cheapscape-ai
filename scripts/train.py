@@ -46,10 +46,30 @@ def main() -> None:
 
     train_cfg = load_config(args.config, required_keys=REQUIRED_KEYS)
     result = train_from_configs(train_cfg, repo_root=REPO_ROOT)
+
+    if result.stop_reason == "already_complete":
+        print(f"Nothing to do: checkpoint is already at step {result.start_step}.")
+        return
+
     print(
-        f"Trained {result.steps} steps on {result.device}: "
-        f"loss {result.initial_loss:.4f} -> {result.final_loss:.4f}"
+        f"Ran steps {result.start_step}->{result.start_step + result.steps} on {result.device} "
+        f"({result.stop_reason}): loss {result.initial_loss:.4f} -> {result.final_loss:.4f}"
     )
+    if result.val_losses:
+        step, value = result.val_losses[-1]
+        print(f"Validation loss at step {step}: {value:.4f}")
+    print(
+        f"{result.tokens_per_second:,.0f} tok/s over {result.elapsed_seconds:.1f}s, "
+        f"estimated ${result.estimated_cost_usd:.2f}"
+    )
+    if result.peak_memory_bytes:
+        print(f"Peak GPU memory: {result.peak_memory_bytes / 2**30:.2f} GiB")
+    if result.checkpoints:
+        print(f"Newest checkpoint: {result.checkpoints[-1]}")
+
+    # A preempted run should exit non-zero so a supervising loop relaunches it.
+    if result.stop_reason.startswith("preempted"):
+        raise SystemExit(75)
 
 
 if __name__ == "__main__":

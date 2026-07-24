@@ -1,0 +1,17 @@
+# Phase 5 correctness gate: drive one batch's loss to ~0 before spending on a GPU.
+seed: 1337
+device: auto
+precision: fp32 # Establish correctness before bf16.
+batch_size: 4
+gradient_accumulation_steps: 1
+max_steps: 100
+learning_rate: 3.0e-4
+context_length: 512 # Design decision: shorter windows for the overfit gate.
+packed_dir: "data/packed"
+model_config: "configs/model.yaml"
+overfit_one_batch: true
+lr_schedule: constant
+checkpoint_dir: null
+checkpoint_every: null
+validation_every: null
+log_every: 10
