@@ -1,10 +1,15 @@
+# Phase 5: one-batch overfit gate before full-corpus training.
 seed: 1337
 device: auto # local: cpu or mps; cloud: cuda
 precision: fp32 # Establish correctness before bf16/fp16.
-batch_size: null
+batch_size: 4
 gradient_accumulation_steps: 1
-max_steps: null
-learning_rate: null
-checkpoint_every: null
-validation_every: null
+max_steps: 100
+learning_rate: 3.0e-4
+context_length: 512 # Design decision: shorter windows for the overfit gate.
+packed_dir: "data/packed"
+model_config: "configs/model.yaml"
+overfit_one_batch: true
+checkpoint_every: null # Deferred until after the overfit gate.
+validation_every: null # Deferred until after the overfit gate.
 budget_usd: 0 # Change only for a planned cloud run.
