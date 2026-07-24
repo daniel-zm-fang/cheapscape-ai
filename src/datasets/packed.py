@@ -23,6 +23,7 @@ Example layout
     yields ``(n - 1) // T`` non-overlapping examples.
 """
 
+import bisect
 import json
 from collections.abc import Iterable
 from dataclasses import dataclass
@@ -207,3 +208,63 @@ class PackedTokenDataset:
         x = torch.from_numpy(block[:-1])
         y = torch.from_numpy(block[1:])
         return x, y
+
+
+class PackedSplit:
+    """Every shard of one split, indexed as a single sequence of examples.
+
+    Training reads from many shards, so this concatenates the per-shard
+    :class:`PackedTokenDataset` views and maps a global example index to the
+    shard that holds it. Shards too short to yield one example are skipped
+    rather than raising, so a small trailing shard cannot break a run.
+    """
+
+    def __init__(self, packed_dir: Path, split: str, context_length: int) -> None:
+        self.packed_dir = Path(packed_dir)
+        self.split = split
+        self.context_length = context_length
+
+        manifest = load_manifest(self.packed_dir)
+        entry = manifest.get("splits", {}).get(split)
+        if not entry or not entry.get("shards"):
+            raise ValueError(f"No {split!r} shards found in manifest under {self.packed_dir}")
+
+        dtype = str(manifest["dtype"])
+        self.shards: list[PackedTokenDataset] = []
+        # Cumulative example counts, so a global index maps to a shard via bisect.
+        self._cumulative: list[int] = []
+        total = 0
+        for filename in entry["shards"]:
+            path = self.packed_dir / filename
+            try:
+                shard = PackedTokenDataset(path, context_length=context_length, dtype=dtype)
+            except ValueError:
+                continue
+            self.shards.append(shard)
+            total += len(shard)
+            self._cumulative.append(total)
+
+        if not self.shards:
+            raise ValueError(
+                f"No {split!r} shard under {self.packed_dir} holds an example of "
+                f"context_length={context_length}"
+            )
+        self._num_examples = total
+
+    def __len__(self) -> int:
+        return self._num_examples
+
+    def __getitem__(self, index: int) -> tuple[torch.Tensor, torch.Tensor]:
+        if index < 0:
+            index += self._num_examples
+        if not 0 <= index < self._num_examples:
+            raise IndexError(f"Index {index} out of range for {self._num_examples} examples")
+
+        shard_index = bisect.bisect_right(self._cumulative, index)
+        previous = self._cumulative[shard_index - 1] if shard_index else 0
+        return self.shards[shard_index][index - previous]
+
+    @property
+    def num_tokens(self) -> int:
+        """Tokens reachable as examples (excludes each shard's unused remainder)."""
+        return self._num_examples * self.context_length
