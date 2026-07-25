@@ -1,9 +1,26 @@
 # Copy this file for each experiment; never modify a historical run config.
+#
+# The corpus itself is never committed (data/ is gitignored). This file plus
+# configs/sources.lock.json is the recipe that rebuilds it.
+#
+# Source types:
+#   fixture  local file, for tests and smoke runs
+#   http     streaming download; resumable and checksum-verified
+#            url:      must be a pinned revision, not a moving branch
+#            sha256:   optional. When set it is enforced on download; when
+#                      omitted the first fetch records it in the lockfile and
+#                      every later fetch is checked against that.
+#            filename: optional override for the destination name
 seed: 1337
 sources:
   - type: fixture
     path: tests/fixtures/tiny_corpus.txt
     id: tiny_corpus_v0
+  # Real sources go here once the sizing measurement fixes how much to pull.
+  # Sample first, measure bytes-per-token, then download to hit the target.
+  # - type: http
+  #   id: fineweb_edu_sample_000
+  #   url: https://huggingface.co/datasets/HuggingFaceFW/fineweb-edu/resolve/<commit-sha>/sample/10BT/000_00000.parquet
 validation_fraction: 0.01
 normalization_version: v0
 deduplication: exact # Upgrade only when a test demonstrates its behavior.
