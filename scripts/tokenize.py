@@ -9,24 +9,18 @@ as a ``val`` split. Finally a ``manifest.json`` records the shards, id dtype, an
 vocabulary size for the training loop to consume.
 """
 
-# ruff: noqa: E402 -- the sys.path guard below must run before the later imports.
-import os
-import sys
+# isort: off
+import _bootstrap  # noqa: F401 -- must run before any other import
 
-# This file is named ``tokenize.py``. Running it as a script places its directory
-# on ``sys.path[0]``, where it would shadow the standard library's ``tokenize``
-# module and break common imports (e.g. ``dataclasses`` -> ``inspect`` ->
-# ``linecache`` -> ``tokenize``). Drop the script directory before importing more.
-_script_dir = os.path.dirname(os.path.abspath(__file__))
-sys.path[:] = [p for p in sys.path if os.path.abspath(p or os.getcwd()) != _script_dir]
+# isort: on
 
 import argparse
 import random
-from collections.abc import Iterator
 from pathlib import Path
 
 from config import load_config
 from datasets.packed import ShardWriter, dtype_for_vocab, write_manifest
+from datasets.text import iter_documents
 from tokenizer.bpe import BPETokenizer
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -43,34 +37,6 @@ REQUIRED_KEYS = [
 def _resolve(path_value: str) -> Path:
     path = Path(path_value)
     return path if path.is_absolute() else REPO_ROOT / path
-
-
-def iter_documents(input_dir: Path) -> Iterator[str]:
-    """Yield documents from every ``.txt`` and ``.parquet`` file under ``input_dir``."""
-    if not input_dir.is_dir():
-        raise FileNotFoundError(f"Input directory not found: {input_dir}")
-
-    files = sorted(p for p in input_dir.rglob("*") if p.suffix in {".txt", ".parquet"})
-    if not files:
-        raise FileNotFoundError(f"No .txt or .parquet files found under {input_dir}")
-
-    for file in files:
-        if file.suffix == ".txt":
-            yield file.read_text(encoding="utf-8")
-        else:
-            yield from _iter_parquet_text(file)
-
-
-def _iter_parquet_text(file: Path) -> Iterator[str]:
-    try:
-        import pyarrow.parquet as pq
-    except ImportError as exc:  # pragma: no cover - depends on optional extra
-        raise RuntimeError(f"Reading {file} requires pyarrow; install the 'data' extra.") from exc
-
-    table = pq.read_table(file, columns=["text"])
-    for value in table.column("text").to_pylist():
-        if value is not None:
-            yield str(value)
 
 
 def _special_id(tokenizer: BPETokenizer, token: str) -> int:

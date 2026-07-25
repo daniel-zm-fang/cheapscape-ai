@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "sources": {
+    "tiny_corpus_v0": {
+      "id": "tiny_corpus_v0",
+      "type": "fixture",
+      "filename": "tiny_corpus_v0.txt",
+      "size_bytes": 266,
+      "sha256": "487718132993be50b105da49b35943445b82aabe0c1950d2d1cd80fa12c53899",
+      "url": null,
+      "acquired_at": "2026-07-25T19:23:30+00:00"
+    }
+  }
+}
