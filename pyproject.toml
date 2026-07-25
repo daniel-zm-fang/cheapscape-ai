@@ -41,3 +41,8 @@ strict = true
 files = ["src"]
 mypy_path = "src"
 explicit_package_bases = true
+
+# pyarrow ships no stubs and is an optional extra, imported lazily.
+[[tool.mypy.overrides]]
+module = ["pyarrow", "pyarrow.*"]
+ignore_missing_imports = true
