@@ -9,16 +9,10 @@ as a ``val`` split. Finally a ``manifest.json`` records the shards, id dtype, an
 vocabulary size for the training loop to consume.
 """
 
-# ruff: noqa: E402 -- the sys.path guard below must run before the later imports.
-import os
-import sys
+# isort: off
+import _bootstrap  # noqa: F401 -- must run before any other import
 
-# This file is named ``tokenize.py``. Running it as a script places its directory
-# on ``sys.path[0]``, where it would shadow the standard library's ``tokenize``
-# module and break common imports (e.g. ``dataclasses`` -> ``inspect`` ->
-# ``linecache`` -> ``tokenize``). Drop the script directory before importing more.
-_script_dir = os.path.dirname(os.path.abspath(__file__))
-sys.path[:] = [p for p in sys.path if os.path.abspath(p or os.getcwd()) != _script_dir]
+# isort: on
 
 import argparse
 import random

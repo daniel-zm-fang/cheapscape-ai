@@ -5,6 +5,11 @@ files with a ``text`` column when ``pyarrow`` is available), trains the
 byte-level BPE tokenizer, and writes ``tokenizer.json`` to ``output_dir``.
 """
 
+# isort: off
+import _bootstrap  # noqa: F401 -- must run before any other import
+
+# isort: on
+
 import argparse
 from collections.abc import Iterator
 from pathlib import Path
